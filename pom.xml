@@ -83,7 +83,8 @@
     <slf4j.version>1.7.36</slf4j.version>
     <spark.version>4.1.2</spark.version>
     <kubernetes.client.version>6.8.1</kubernetes.client.version>
-    <hive.version>3.0.0</hive.version>
+    <!-- Hive 4.0.x: Java 8, libthrift 0.16 (aligns better with Livy thriftserver than 3.0.0 / 0.9.3). -->
+    <hive.version>4.0.1</hive.version>
     <commons-codec.version>1.15</commons-codec.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <httpclient.version>4.5.14</httpclient.version>

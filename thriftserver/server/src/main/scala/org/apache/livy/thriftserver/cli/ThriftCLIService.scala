@@ -19,6 +19,7 @@ package org.apache.livy.thriftserver.cli
 
 import java.io.IOException
 import java.net.{InetAddress, UnknownHostException}
+import java.nio.ByteBuffer
 import java.util
 import java.util.Collections
 import javax.security.auth.login.LoginException
@@ -684,6 +685,33 @@ abstract class ThriftCLIService(val cliService: LivyCLIService, val serviceName:
     } catch {
       case e: HiveSQLException => throw new TException(e)
     }
+  }
+
+  // UploadData/DownloadData are not supported by Livy. Their response structs
+  // (TUploadDataResp/TDownloadDataResp) mark `operationHandle` as a required field, so even on the
+  // error path we must set a (placeholder) operationHandle; otherwise the response fails Thrift
+  // validation during serialization and the server tears down the client connection instead of
+  // returning a meaningful error status.
+  private def unsupportedOperationHandle(): TOperationHandle = {
+    val handleId = new THandleIdentifier(
+      ByteBuffer.wrap(new Array[Byte](16)), ByteBuffer.wrap(new Array[Byte](16)))
+    new TOperationHandle(handleId, TOperationType.UNKNOWN, false)
+  }
+
+  override def UploadData(req: TUploadDataReq): TUploadDataResp = {
+    val resp = new TUploadDataResp
+    resp.setOperationHandle(unsupportedOperationHandle())
+    resp.setStatus(HiveSQLException.toTStatus(
+      new HiveSQLException("UploadData is not supported by the Livy Thrift server")))
+    resp
+  }
+
+  override def DownloadData(req: TDownloadDataReq): TDownloadDataResp = {
+    val resp = new TDownloadDataResp
+    resp.setOperationHandle(unsupportedOperationHandle())
+    resp.setStatus(HiveSQLException.toTStatus(
+      new HiveSQLException("DownloadData is not supported by the Livy Thrift server")))
+    resp
   }
 
   override def run(): Unit
