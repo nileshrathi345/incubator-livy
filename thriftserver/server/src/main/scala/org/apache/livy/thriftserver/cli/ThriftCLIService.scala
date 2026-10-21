@@ -763,4 +763,15 @@ private[thriftserver] class ThriftCLIServerContext extends ServerContext {
   }
 
   def getSessionHandle: SessionHandle = sessionHandle
+
+  override def isWrapperFor(clazz: Class[_]): Boolean =
+    clazz.isAssignableFrom(getClass)
+
+  override def unwrap[T](clazz: Class[T]): T = {
+    if (!isWrapperFor(clazz)) {
+      throw new IllegalArgumentException(
+        s"${getClass.getName} is not a wrapper for ${clazz.getName}")
+    }
+    this.asInstanceOf[T]
+  }
 }
